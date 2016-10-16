@@ -2,21 +2,20 @@ package br.com.leonardowistuba.rx;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
 import br.com.leonardowistuba.rx.socket.ConnectionStatus;
+import br.com.leonardowistuba.rx.socket.FabObservable;
 import br.com.leonardowistuba.rx.socket.ObservableFactory;
+import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,17 +28,12 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        Observable.create(new FabObservable(fab)).subscribe(ObservableFactory.sharedInstance.emitClickAction);
 
         final TextView textViewConnectionStatus = (TextView) findViewById(R.id.connection_status);
         final TextView textViewUsersConnected = (TextView) findViewById(R.id.text_view_users_connected);
+        final TextView textViewNumberOfClicks = (TextView) findViewById(R.id.text_view_number_of_clicks);
 
         mSubscribe = ObservableFactory.sharedInstance.connectionStatusObservable.map(new Func1<ConnectionStatus, String>() {
             @Override
@@ -88,6 +82,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onNext(Integer integer) {
                 textViewUsersConnected.setText("Usuários conectados: " + integer);
+            }
+        });
+
+        ObservableFactory.sharedInstance.numberOfClicksObservable.observeOn(AndroidSchedulers.mainThread()).subscribe(new Subscriber<Integer>() {
+            @Override
+            public void onCompleted() {
+
+            }
+
+            @Override
+            public void onError(Throwable e) {
+
+            }
+
+            @Override
+            public void onNext(Integer integer) {
+                textViewNumberOfClicks.setText("Número de cliques: " + integer);
             }
         });
     }

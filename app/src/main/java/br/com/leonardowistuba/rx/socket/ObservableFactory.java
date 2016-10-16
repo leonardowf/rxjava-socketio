@@ -11,6 +11,7 @@ import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
 import rx.Observable;
 import rx.Subscriber;
+import rx.functions.Action1;
 import rx.functions.Func1;
 
 /**
@@ -31,6 +32,7 @@ public class ObservableFactory {
             eventNames.add(Socket.EVENT_CONNECT_ERROR);
             eventNames.add(Socket.EVENT_CONNECTING);
             eventNames.add("number_of_clients");
+            eventNames.add("number_of_clicks");
 
             for (final String eventName : eventNames) {
                 socket.on(eventName, new Emitter.Listener() {
@@ -49,7 +51,7 @@ public class ObservableFactory {
 
     private void tryToConnect() {
         try {
-            socket = IO.socket("http://192.168.0.15:8080");
+            socket = IO.socket("http://ec2-52-67-92-102.sa-east-1.compute.amazonaws.com:63908");
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -84,6 +86,36 @@ public class ObservableFactory {
         @Override
         public Boolean call(SocketEvent socketEvent) {
             if (socketEvent.event.equals("number_of_clients")) {
+                return true;
+            }
+
+            return false;
+        }
+    }).map(new Func1<SocketEvent, Integer>() {
+        @Override
+        public Integer call(SocketEvent socketEvent) {
+            Object[] args = socketEvent.args;
+            JSONObject jsonObject = (JSONObject) args[0];
+            try {
+                Integer value = new Integer(jsonObject.getString("value"));
+                return value;
+            } catch (JSONException e) {
+                return 0;
+            }
+        }
+    });
+
+    public Action1 emitClickAction = new Action1() {
+        @Override
+        public void call(Object o) {
+            socket.emit("click");
+        }
+    };
+
+    public Observable<Integer> numberOfClicksObservable = socketEventObservable.filter(new Func1<SocketEvent, Boolean>() {
+        @Override
+        public Boolean call(SocketEvent socketEvent) {
+            if (socketEvent.event.equals("number_of_clicks")) {
                 return true;
             }
 

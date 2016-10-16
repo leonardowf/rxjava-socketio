@@ -25,4 +25,10 @@
         android:layout_height="wrap_content"
         android:id="@+id/text_view_users_connected"
         android:text="Hello World!"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/text_view_number_of_clicks"
+        android:text="Número de cliques: 0"/>
 </LinearLayout>
